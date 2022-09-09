@@ -51,7 +51,18 @@ def any_subprocess(args, prefix, env=None, cwd=None):
         stderr=PIPE,
         env=env,
     )
-    stdout, stderr = process.communicate()
+    print('any subpro called: ', command_args)
+    while process.poll() is None:
+        sys.stdout.buffer.write(process.stdout.read(1))
+        sys.stdout.flush()
+    try:
+        stdout, stderr = process.communicate(timeout=10)
+    except subprocess.TimeoutExpired:
+        print('timed out')
+        print("stdout", stdout.read())
+        print("stderr", stderr.read())
+        raise
+
     if script_caller is not None:
         if 'CONDA_TEST_SAVE_TEMPS' not in os.environ:
             rm_rf(script_caller)
